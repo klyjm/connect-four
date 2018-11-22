@@ -56,6 +56,7 @@ extern "C" __declspec(dllexport) Point* getPoint(const int M, const int N, const
     */
 	
 	
+	
 	/*
 		不要更改这段代码
 	*/
