@@ -1,6 +1,9 @@
 #include <iostream>
+#include <random>
+#include <Windows.h>
 #include "Point.h"
 #include "Strategy.h"
+#include "UCT.h"
 
 using namespace std;
 
@@ -55,7 +58,30 @@ extern "C" __declspec(dllexport) Point* getPoint(const int M, const int N, const
 	}
     */
 	
-	
+	/*
+	default_random_engine e;
+	//e.seed(GetTickCount64());
+	uniform_int_distribution<unsigned> u(0, 8);
+	unsigned i = u(e);
+	if (top[i] > 0)
+	{
+		x = top[i] - 1;
+		y = i;
+	}
+	else
+	{
+		i = u(e);
+		x = top[i] - 1;
+		y = i;
+	}
+	*/
+
+	UCT *ucttree = new UCT(M, N, noX, noY);
+	node *bestchild;
+	int *topstate = top;
+	bestchild = ucttree->search(board, topstate);
+	int x = bestchild->x();
+	int y = bestchild->y();
 	
 	/*
 		不要更改这段代码
