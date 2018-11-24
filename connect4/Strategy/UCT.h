@@ -13,7 +13,7 @@
 #define MACHINE_WIN_PROFIT 1 //本方获胜收益 
 #define TIE_PROFIT 0 //平局收益
 #define UNTERMINAL_STATE 2 //非终止状态 
-#define VITALITY_COEFFICIENT 1.38 //比例系数c，选取待定 
+#define VITALITY_COEFFICIENT 0.8 //比例系数c，选取待定 
 
 using namespace std;
 
@@ -39,7 +39,7 @@ private:
 
 	int *TopState() const { //复制棋盘顶端状态数组topState 
 		int *presentTop = new int[column];
-		for (int i = 0; i != column; i++)
+		for (int i = 0; i < column; i++)
 			presentTop[i] = topState[i];
 		return presentTop;
 	}
@@ -53,7 +53,7 @@ private:
 		return presentBoardState;
 	}
 	void clear() { //空间释放
-		for (int i = 0; i != row; i++)
+		for (int i = 0; i < row; i++)
 			delete[] boardState[i];
 		delete[] boardState;
 		delete[] topState;
@@ -61,15 +61,36 @@ private:
 		for (int i = 0; i != column; i++)
 			if (children[i]) {
 				children[i]->clear();
-				delete children[i];
+				delete[] children[i];
 			}
 		delete[] children;
 	}
 
 public:
 	//构造函数 
-	node(int **board, int *top, int r, int c, int noX, int noY, int depth = 0, int x = -1, int y = -1, int playingRight = MACHINE_CHANCE, node* _father = NULL) :
-		boardState(board), topState(top), row(r), column(c), _noX(noX), _noY(noY), _depth(depth), lastx(x), lasty(y), _chessman(playingRight), visitednum(0), profit(0), father(_father) {
+	node(int **board, int *top, int M, int N, int noX, int noY, int depth = 0, int x = -1, int y = -1, int playingRight = MACHINE_CHANCE, node* _father = NULL)
+	{
+		boardState = new int*[M];
+		for (int i = 0; i < M; i++)
+		{
+			boardState[i] = new int[N];
+			for (int j = 0; j < N; j++)
+				boardState[i][j] = board[i][j];
+		}
+		topState = new int[N];
+		for (int i = 0; i < N; i++)
+			topState[i] = top[i];
+		row = M;
+		column = N;
+		_noX = noX;
+		_noY = noY;
+		_depth = depth;
+		lastx = x;
+		lasty = y;
+		_chessman = playingRight;
+		visitednum = 0;
+		profit = 0;
+		father = _father;
 		expandablenum = 0;
 		children = new node*[column]; //大小等于行数的子节点数组 
 		expandablenode = new int[column]; //可到达子节点编号的数组 
@@ -144,85 +165,29 @@ private:
 	int startTime; //计算开始时间
 
 	//计算当前状态收益
-	int Profit(int **board, int *top, int chessman, int x, int y) const {
-		if (chessman == USER_CHANCE && userWin(x, y, _row, _column, board))
-			return USER_WIN_PROFIT;
-		if (chessman == MACHINE_CHANCE && machineWin(x, y, _row, _column, board))
-			return MACHINE_WIN_PROFIT;
-		if (isTie(_column, top))
-			return TIE_PROFIT;
-		return UNTERMINAL_STATE; //未进入终止状态 
-	}
+	int profit(int **board, int *top, int chessman, int x, int y) const;
 	//随机落子 
-	void placeChessman(int **board, int *top, int chessman, int &x, int &y) {
-		y = rand() % _column; //随机选择一列 
-		while (top[y] == 0) //若此列已下满 
-			y = rand() % _column; //再随机选择一列 
-		x = --top[y]; //确定落子高度 
-		board[x][y] = chessman; //落子 
-		if (x - 1 == _noX && y == _noY) //若落子位置正上方紧邻不可落子点 
-			top[y] --;
-	}
+	void placechessman(int **board, int *top, int chessman, int &x, int &y);
 	//棋权变换 
-	int rightChange(int chessman) const {
-		if (chessman == USER_CHANCE)
-			return MACHINE_CHANCE;
-		else if (chessman == MACHINE_CHANCE)
-			return USER_CHANCE;
-		else
-			return -1;
-	}
-
+	int rightchange(int chessman) const;
 	//搜索树策略 
-	node *TreePolicy(node *presentNode) {
-		while (!presentNode->isTerminal()) { //节点不是终止节点 
-			if (presentNode->isExpandable()) //且拥有未被访问的子状态 
-				return Expand(presentNode); //扩展该节点 
-			else
-				presentNode = BestChild(presentNode); //选择最优子节点 
-		}
-		return presentNode;
-	}
+	node *treepolicy(node *presentNode);
 	//对节点进行扩展
-	node *Expand(node *presentNode) { return presentNode->expand(rightChange(presentNode->chessman())); }
+	node *expand(node *presentNode);
 	//最优子节点 
-	node *BestChild(node *father) { return father->bestChild(); }
+	node *bestchild(node *father);
 	//模拟策略 
-	double DefaultPolicy(node *selectedNode) {
-		int **boardState = selectedNode->BoardState(), *top = selectedNode->TopState();
-		int chessman = selectedNode->chessman(), depth = selectedNode->_depth;
-		int x = selectedNode->x(), y = selectedNode->y();
-		int profit = Profit(boardState, top, rightChange(chessman), x, y); //计算收益 
-		while (profit == UNTERMINAL_STATE) { //若当前状态未达终止状态 
-			depth++;
-			placeChessman(boardState, top, chessman, x, y); //随机落子 
-			profit = Profit(boardState, top, chessman, x, y); //计算收益 
-			chessman = rightChange(chessman); //棋权变换 
-		}
-		for (int i = 0; i != _row; i++)
-			delete[] boardState[i];
-		delete[] boardState;
-		delete[] top;
-		return double(profit);// / logl(depth + 1); //非线性加速
-	}
+	double defaultpolicy(node *selectedNode);
 	//回溯更新收益(深度越深收益越小)
-	void Backup(node *selectedNode, double deltaProfit) { selectedNode->backup(deltaProfit); }
+	void backup(node *selectedNode, double deltaProfit);
 
 public:
 	//构造函数 
-	UCT(int row, int column, int noX, int noY) : _row(row), _column(column), _noX(noX), _noY(noY), startTime(clock()) {}
+	UCT(int row, int column, int noX, int noY);
 	//信心上限树搜索 
-	node *search(int **boardState, int *topState) {
-		_root = new node(boardState, topState, _row, _column, _noX, _noY); //以当前状态创建根节点 
-		while (clock() - startTime <= TIME_LIMITATION) { //尚未耗尽计算时长 
-			node *selectedNode = TreePolicy(_root); //运用搜索树策略节点 
-			double deltaProfit = DefaultPolicy(selectedNode); //运用模拟策略对选中节点进行一次随机模拟 
-			Backup(selectedNode, deltaProfit); //将模拟结果回溯反馈给各祖先 
-		}
-		return BestChild(_root);
-	}
+	node *search(int **boardState, int *topState); 
 	//析构函数 
-	~UCT() { _root->clear(); delete _root; }
+	~UCT();
 };
 
 #endif //__UCT_H__

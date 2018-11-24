@@ -76,17 +76,20 @@ extern "C" __declspec(dllexport) Point* getPoint(const int M, const int N, const
 	}
 	*/
 
-	UCT *ucttree = new UCT(M, N, noX, noY);
+	UCT *ucttree=new UCT(M, N, noX, noY);
 	node *bestchild;
-	int *topstate = top;
+	int *topstate = new int[N];
+	for (int i = 0; i < N; i++)
+		topstate[i] = top[i];
 	bestchild = ucttree->search(board, topstate);
-	int x = bestchild->x();
-	int y = bestchild->y();
+	x = bestchild->x();
+	y = bestchild->y();
+	delete[] topstate;
 	
 	/*
 		不要更改这段代码
 	*/
-	clearArray(M, N, board);
+	clearArray(M, N, board, ucttree);
 	return new Point(x, y);
 }
 
@@ -103,7 +106,8 @@ extern "C" __declspec(dllexport) void clearPoint(Point* p){
 /*
 	清除top和board数组
 */
-void clearArray(int M, int N, int** board){
+void clearArray(int M, int N, int** board, UCT *ucttree){
+	delete ucttree;
 	for(int i = 0; i < M; i++){
 		delete[] board[i];
 	}

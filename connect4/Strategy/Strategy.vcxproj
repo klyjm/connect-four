@@ -90,6 +90,7 @@
   <ItemGroup>
     <ClCompile Include="Judge.cpp" />
     <ClCompile Include="Strategy.cpp" />
+    <ClCompile Include="UCT.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Judge.h" />

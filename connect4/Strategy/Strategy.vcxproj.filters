@@ -21,6 +21,9 @@
     <ClCompile Include="Strategy.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="UCT.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Judge.h">
