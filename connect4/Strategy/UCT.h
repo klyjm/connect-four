@@ -59,7 +59,8 @@ private:
 		delete[] topState;
 		delete[] expandablenode;
 		for (int i = 0; i != column; i++)
-			if (children[i]) {
+			if (children[i]) 
+			{
 				children[i]->clear();
 				delete[] children[i];
 			}
@@ -115,7 +116,8 @@ public:
 		return false;
 	}
 	//扩展节点 
-	node *expand(int playingRight) {
+	node *expand(int playingRight) 
+	{
 		int index = rand() % expandablenum; //随机确定一个索引值 
 		int **newBoardState = BoardState(); //复制棋盘状态数组 
 		int *newTopState = TopState(); //复制棋盘顶端状态数组 
@@ -125,6 +127,10 @@ public:
 			newTopState[newY] --; //更新棋盘顶端状态数组
 		//为当前节点创建扩展子节点 
 		children[newY] = new node(newBoardState, newTopState, row, column, _noX, _noY, _depth + 1, newX, newY, playingRight, this);
+		for (int i = 0; i < row; i++)
+			delete[] newBoardState[i];
+		delete[] newBoardState;
+		delete[] newTopState;
 		swap(expandablenode[index], expandablenode[--expandablenum]); //将被选中子节点编号置换到目录末尾
 		return children[newY];
 	}
@@ -167,7 +173,7 @@ private:
 	//计算当前状态收益
 	int profit(int **board, int *top, int chessman, int x, int y) const;
 	//随机落子 
-	void placechessman(int **board, int *top, int chessman, int &x, int &y);
+	int *placechessman(int **board, int *top, int chessman);
 	//棋权变换 
 	int rightchange(int chessman) const;
 	//搜索树策略 
@@ -185,7 +191,7 @@ public:
 	//构造函数 
 	UCT(int row, int column, int noX, int noY);
 	//信心上限树搜索 
-	node *search(int **boardState, int *topState); 
+	int *search(int **boardState, int *topState); 
 	//析构函数 
 	~UCT();
 };
