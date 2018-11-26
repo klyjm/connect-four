@@ -3,14 +3,14 @@
 
 #include <iostream>
 #include <time.h>
-#include "Judge.h" //包含判断胜负的函数userWin，machineWin和isTie 
+#include "Point.h"
+#include "Judge.h"
 
-//#define EMPTY 0 //未落子 
-#define USER_CHANCE 1 //对方棋权 
-#define MACHINE_CHANCE 2 //本方棋权 
+#define USER_CHANCE 1 //对方下棋
+#define MACHINE_CHANCE 2 //己方下棋 
 #define TIME_LIMITATION 2500 //时长限制
 #define USER_WIN_PROFIT -1 //对方获胜收益 
-#define MACHINE_WIN_PROFIT 1 //本方获胜收益 
+#define MACHINE_WIN_PROFIT 1 //己方获胜收益 
 #define TIE_PROFIT 0 //平局收益
 #define UNTERMINAL_STATE 2 //非终止状态 
 #define VITALITY_COEFFICIENT 0.8 //比例系数c，选取待定 
@@ -22,12 +22,12 @@ class UCT;
 class node
 {
 private:
-	int **boardState; //棋局状态
-	int *topState; //顶端状态
-	int row, column; //棋盘大小（M, N）
-	int _noX, _noY; //不可落子点位置 
-	int _chessman; //我方持子属性 
-	int lastx, lasty; //前一上落子位置
+	int **boardState; //棋局数组
+	int *topState; //顶端数组
+	int row, column; //棋盘行列数
+	int nox, noy; //不可落子位置 
+	int chesschance; //棋权 
+	int lastx, lasty; //上一步落子位置
 	int visitednum; //被访问次数 
 	double profit; //当前状态我方收益
 	int _depth; //节点深度 
@@ -58,10 +58,11 @@ private:
 		delete[] boardState;
 		delete[] topState;
 		delete[] expandablenode;
-		for (int i = 0; i != column; i++)
-			if (children[i]) 
+		for (int i = 0; i < column; i++)
+			if (children[i])
 			{
 				children[i]->clear();
+				//cout << "OK" << endl;
 				delete[] children[i];
 			}
 		delete[] children;
@@ -69,7 +70,7 @@ private:
 
 public:
 	//构造函数 
-	node(int **board, int *top, int M, int N, int noX, int noY, int depth = 0, int x = -1, int y = -1, int playingRight = MACHINE_CHANCE, node* _father = NULL)
+	node(int **board, int *top, int M, int N, int noX, int noY, int depth = 0, int x = -1, int y = -1, int chessright = MACHINE_CHANCE, node* _father = NULL)
 	{
 		boardState = new int*[M];
 		for (int i = 0; i < M; i++)
@@ -83,12 +84,12 @@ public:
 			topState[i] = top[i];
 		row = M;
 		column = N;
-		_noX = noX;
-		_noY = noY;
+		nox = noX;
+		noy = noY;
 		_depth = depth;
 		lastx = x;
 		lasty = y;
-		_chessman = playingRight;
+		chesschance = chessright;
 		visitednum = 0;
 		profit = 0;
 		father = _father;
@@ -103,36 +104,42 @@ public:
 	}
 	int x() const { return lastx; }
 	int y() const { return lasty; }
-	int chessman() const { return _chessman; }
+	int whochess() const { return chesschance; }
 	bool isExpandable() const { return expandablenum > 0; }//是否可扩展
 	//是否为终止节点 
 	bool isTerminal() {
 		if (lastx == -1 && lasty == -1) //若为根节点 
 			return false;
-		if ((_chessman == USER_CHANCE && machineWin(lastx, lasty, row, column, boardState)) || //计算机胜利 
-			(_chessman == MACHINE_CHANCE && userWin(lastx, lasty, row, column, boardState)) || //玩家胜利 
+		if ((chesschance == USER_CHANCE && machineWin(lastx, lasty, row, column, boardState)) || //计算机胜利 
+			(chesschance == MACHINE_CHANCE && userWin(lastx, lasty, row, column, boardState)) || //玩家胜利 
 			(isTie(column, topState))) //平局 
 			return true;
 		return false;
 	}
 	//扩展节点 
-	node *expand(int playingRight) 
+	node *expand(int chessright)
 	{
 		int index = rand() % expandablenum; //随机确定一个索引值 
-		int **newBoardState = BoardState(); //复制棋盘状态数组 
+		//int **newBoardState = BoardState(); //复制棋盘状态数组 
+		int **newBoardState = new int*[row];
+		for (int i = 0; i < row; i++) {
+			newBoardState[i] = new int[column];
+			for (int j = 0; j < column; j++)
+				newBoardState[i][j] = boardState[i][j];
+		}
 		int *newTopState = TopState(); //复制棋盘顶端状态数组 
-		int newY = expandablenode[index], newX = --newTopState[newY]; //确定落子坐标 
-		newBoardState[newX][newY] = chessman(); //落子 
-		if (newX - 1 == _noX && newY == _noY) //若落子位置的正上方位置是不可落子点 
-			newTopState[newY] --; //更新棋盘顶端状态数组
+		int newy = expandablenode[index], newx = --newTopState[newy]; //确定落子坐标 
+		newBoardState[newx][newy] = chesschance; //落子 
+		if (newx - 1 == nox && newy == noy) //若落子位置的正上方位置是不可落子点 
+			newTopState[newy] --; //更新棋盘顶端状态数组
 		//为当前节点创建扩展子节点 
-		children[newY] = new node(newBoardState, newTopState, row, column, _noX, _noY, _depth + 1, newX, newY, playingRight, this);
+		children[newy] = new node(newBoardState, newTopState, row, column, nox, noy, _depth + 1, newx, newy, chessright, this);
 		for (int i = 0; i < row; i++)
 			delete[] newBoardState[i];
 		delete[] newBoardState;
 		delete[] newTopState;
 		swap(expandablenode[index], expandablenode[--expandablenum]); //将被选中子节点编号置换到目录末尾
-		return children[newY];
+		return children[newy];
 	}
 	//最优子节点
 	node *bestChild() {
@@ -140,11 +147,13 @@ public:
 		double maxProfitRatio = -RAND_MAX;
 		for (int i = 0; i != column; i++) {
 			if (children[i] == NULL) continue;
-			double modifiedProfit = (_chessman == USER_CHANCE ? -1 : 1) * children[i]->profit; //修正收益值
+			double modifiedProfit = (chesschance == USER_CHANCE ? -1 : 1) * children[i]->profit; //修正收益值
 			int childVisitedNum = children[i]->visitednum; //子节点访问数 
 			double tempProfitRatio = modifiedProfit / childVisitedNum +
 				sqrtl(2 * logl(visitednum) / childVisitedNum) * VITALITY_COEFFICIENT; //计算综合收益率 
-			if (tempProfitRatio > maxProfitRatio || (tempProfitRatio == maxProfitRatio && rand() % 2 == 0)) { //选择综合收益率最大的子节点 
+			//if (tempProfitRatio > maxProfitRatio || (tempProfitRatio == maxProfitRatio && rand() % 2 == 0)) { //选择综合收益率最大的子节点 
+			if (tempProfitRatio > maxProfitRatio)
+			{
 				maxProfitRatio = tempProfitRatio;
 				best = children[i];
 			}
@@ -165,15 +174,15 @@ public:
 class UCT
 {
 private:
-	node *_root; //根节点
-	int _row, _column; //行数、列数
-	int _noX, _noY; //不可落子点的位置 
+	node *root; //根节点
+	int row, column; //行数、列数
+	int nox, noy; //不可落子点的位置 
 	int startTime; //计算开始时间
 
 	//计算当前状态收益
 	int profit(int **board, int *top, int chessman, int x, int y) const;
 	//随机落子 
-	int *placechessman(int **board, int *top, int chessman);
+	void placechessman(int **board, int *top, int chessman, int &x, int &y);
 	//棋权变换 
 	int rightchange(int chessman) const;
 	//搜索树策略 
@@ -189,11 +198,11 @@ private:
 
 public:
 	//构造函数 
-	UCT(int row, int column, int noX, int noY);
+	UCT(int M, int N, int noX, int noY);
 	//信心上限树搜索 
-	int *search(int **boardState, int *topState); 
+	Point *search(int **boardState, int *topState);
 	//析构函数 
-	~UCT();
+	virtual ~UCT();
 };
 
 #endif //__UCT_H__

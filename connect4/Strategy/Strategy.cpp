@@ -79,10 +79,10 @@ extern "C" __declspec(dllexport) Point* getPoint(const int M, const int N, const
 	int *topstate = new int[N];
 	for (int i = 0; i < N; i++)
 		topstate[i] = top[i];
-	int *point;
-	point = ucttree->search(board, topstate);
-	x = point[0];
-	y = point[1];
+	Point *point = ucttree->search(board, topstate);
+	x = point->x, y = point->y;
+	delete point;
+	delete[] topstate;
 	delete ucttree;
 	
 	/*
