@@ -13,9 +13,9 @@ Point *UCT::search(int **boardState, int *topState)
 {
 	root = new node(boardState, topState, row, column, nox, noy); //以当前状态创建根节点 
 	while (clock() - startTime <= TIME_LIMITATION) { //尚未耗尽计算时长 
-		node *selectedNode = treepolicy(root); //运用搜索树策略节点 
-		double deltaProfit = defaultpolicy(selectedNode); //运用模拟策略对选中节点进行一次随机模拟 
-		backup(selectedNode, deltaProfit); //将模拟结果回溯反馈给各祖先 
+		node *selectednode = treepolicy(root); //运用搜索树策略节点 
+		double deltaProfit = defaultpolicy(selectednode); //运用模拟策略对选中节点进行一次随机模拟 
+		backup(selectednode, deltaProfit); //将模拟结果回溯反馈给各祖先 
 	}
 	node *bestpoint = bestchild(root);
 	Point *point = new Point(bestpoint->x(), bestpoint->y());
@@ -72,9 +72,26 @@ node *UCT::expand(node *presentNode)
 {
 	return presentNode->expand(rightchange(presentNode->whochess()));
 }
-node *UCT::bestchild(node *father)
+node *UCT::bestchild(node *rootnode)
 {
-	return father->bestChild();
+	node* best;
+	double maxProfitRatio = -RAND_MAX;
+	for (int i = 0; i < column; i++)
+	{
+		if (rootnode->children[i] == NULL)
+			continue;
+		double modifiedProfit = (rootnode->chesschance == USER_CHANCE ? -1 : 1) * rootnode->children[i]->profit; //修正收益值
+		int childVisitedNum = rootnode->children[i]->visitednum; //子节点访问数 
+		double tempProfitRatio = modifiedProfit / childVisitedNum + sqrtl(2 * logl(rootnode->visitednum) / childVisitedNum) * C; //计算综合收益率 
+		//if (tempProfitRatio > maxProfitRatio || (tempProfitRatio == maxProfitRatio && rand() % 2 == 0)) 
+		if (tempProfitRatio > maxProfitRatio)
+		{ //选择综合收益率最大的子节点 
+			maxProfitRatio = tempProfitRatio;
+			best = rootnode->children[i];
+		}
+	}
+	return best;
+	//return father->bestChild();
 }
 
 double UCT::defaultpolicy(node *selectedNode)

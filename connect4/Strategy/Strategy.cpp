@@ -57,24 +57,7 @@ extern "C" __declspec(dllexport) Point* getPoint(const int M, const int N, const
 		}
 	}
     */
-	
-	/*
-	default_random_engine e;
-	//e.seed(GetTickCount64());
-	uniform_int_distribution<unsigned> u(0, 8);
-	unsigned i = u(e);
-	if (top[i] > 0)
-	{
-		x = top[i] - 1;
-		y = i;
-	}
-	else
-	{
-		i = u(e);
-		x = top[i] - 1;
-		y = i;
-	}
-	*/
+
 	UCT *ucttree = new UCT(M, N, noX, noY);
 	int *topstate = new int[N];
 	for (int i = 0; i < N; i++)

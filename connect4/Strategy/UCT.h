@@ -13,7 +13,7 @@
 #define MACHINE_WIN_PROFIT 1 //己方获胜收益 
 #define TIE_PROFIT 0 //平局收益
 #define UNTERMINAL_STATE 2 //非终止状态 
-#define VITALITY_COEFFICIENT 0.8 //比例系数c，选取待定 
+#define C 0.8 //比例系数c，选取待定 
 
 using namespace std;
 
@@ -96,7 +96,7 @@ public:
 		expandablenum = 0;
 		children = new node*[column]; //大小等于行数的子节点数组 
 		expandablenode = new int[column]; //可到达子节点编号的数组 
-		for (int i = 0; i != column; i++) {
+		for (int i = 0; i < column; i++) {
 			if (topState[i] != 0) //若第i列可落子 
 				expandablenode[expandablenum++] = i;
 			children[i] = NULL;
@@ -107,7 +107,8 @@ public:
 	int whochess() const { return chesschance; }
 	bool isExpandable() const { return expandablenum > 0; }//是否可扩展
 	//是否为终止节点 
-	bool isTerminal() {
+	bool isTerminal() 
+	{
 		if (lastx == -1 && lasty == -1) //若为根节点 
 			return false;
 		if ((chesschance == USER_CHANCE && machineWin(lastx, lasty, row, column, boardState)) || //计算机胜利 
@@ -142,24 +143,24 @@ public:
 		return children[newy];
 	}
 	//最优子节点
-	node *bestChild() {
-		node* best;
-		double maxProfitRatio = -RAND_MAX;
-		for (int i = 0; i != column; i++) {
-			if (children[i] == NULL) continue;
-			double modifiedProfit = (chesschance == USER_CHANCE ? -1 : 1) * children[i]->profit; //修正收益值
-			int childVisitedNum = children[i]->visitednum; //子节点访问数 
-			double tempProfitRatio = modifiedProfit / childVisitedNum +
-				sqrtl(2 * logl(visitednum) / childVisitedNum) * VITALITY_COEFFICIENT; //计算综合收益率 
-			//if (tempProfitRatio > maxProfitRatio || (tempProfitRatio == maxProfitRatio && rand() % 2 == 0)) { //选择综合收益率最大的子节点 
-			if (tempProfitRatio > maxProfitRatio)
-			{
-				maxProfitRatio = tempProfitRatio;
-				best = children[i];
-			}
-		}
-		return best;
-	}
+	//node *bestChild() {
+	//	node* best;
+	//	double maxProfitRatio = -RAND_MAX;
+	//	for (int i = 0; i != column; i++) {
+	//		if (children[i] == NULL) continue;
+	//		double modifiedProfit = (chesschance == USER_CHANCE ? -1 : 1) * children[i]->profit; //修正收益值
+	//		int childVisitedNum = children[i]->visitednum; //子节点访问数 
+	//		double tempProfitRatio = modifiedProfit / childVisitedNum +
+	//			sqrtl(2 * logl(visitednum) / childVisitedNum) * C; //计算综合收益率 
+	//		//if (tempProfitRatio > maxProfitRatio || (tempProfitRatio == maxProfitRatio && rand() % 2 == 0)) { //选择综合收益率最大的子节点 
+	//		if (tempProfitRatio > maxProfitRatio)
+	//		{
+	//			maxProfitRatio = tempProfitRatio;
+	//			best = children[i];
+	//		}
+	//	}
+	//	return best;
+	//}
 	//回溯更新
 	void backup(double deltaProfit) {
 		node *temp = this;
