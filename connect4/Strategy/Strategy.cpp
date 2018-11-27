@@ -58,15 +58,50 @@ extern "C" __declspec(dllexport) Point* getPoint(const int M, const int N, const
 	}
     */
 
-	UCT *ucttree = new UCT(M, N, noX, noY);
-	int *topstate = new int[N];
+	//int starttime = clock();
+	int flag = 0;
 	for (int i = 0; i < N; i++)
-		topstate[i] = top[i];
-	Point *point = ucttree->search(board, topstate);
-	x = point->x, y = point->y;
-	delete point;
-	delete[] topstate;
-	delete ucttree;
+	{
+		if (top[i] != 0)
+		{
+			board[top[i] - 1][i] = 1;
+			if (userWin(top[i] - 1, i, M, N, board))
+			{
+				x = top[i] - 1;
+				y = i;
+				flag = 1;
+				break;
+			}
+			else
+			{
+				board[top[i] - 1][i] = 2;
+				if (machineWin(top[i] - 1, i, M, N, board))
+				{
+					x = top[i] - 1;
+					y = i;
+					flag = 2;
+					break;
+				}
+			}
+			board[top[i] - 1][i] = 0;
+		}
+	}
+	//int endtime = clock();
+	//cout << endtime - starttime << endl;
+	if (flag == 0)
+	{
+		UCT *ucttree = new UCT(M, N, noX, noY);
+		int *topstate = new int[N];
+		for (int i = 0; i < N; i++)
+			topstate[i] = top[i];
+		Point *point = ucttree->search(board, topstate);
+		x = point->x, y = point->y;
+		delete point;
+		delete[] topstate;
+		delete ucttree;
+	}
+	//endtime = clock();
+	//cout << endtime - starttime << endl;
 	
 	/*
 		不要更改这段代码
