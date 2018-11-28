@@ -15,7 +15,7 @@
 #define MACHINEWIN 1
 #define TIE 0
 #define NOTEND 2
-#define C 0.5 //比例系数c，选取待定 
+#define C 0.4 //比例系数c，选取待定 
 
 using namespace std;
 static default_random_engine eg(GetTickCount64());
@@ -111,7 +111,7 @@ public:
 	{ 
 		return chesschance; 
 	}
-	bool isExpandable() const 
+	bool isexpandable() const 
 	{ 
 		return expandablenum > 0; 
 	}
@@ -157,14 +157,14 @@ private:
 	int row, column; //行数、列数
 	int nox, noy; //不可落子点的位置 
 	int startTime; //计算开始时间
-	int profit(int **board, int *top, int chessman, int x, int y) const;
+	int profit(int **board, int *top, int chesschance, int x, int y) const;
 	void placechess(int **board, int *top, int chesschance, int &x, int &y);
-	int rightchange(int chessman) const;
-	node *treepolicy(node *presentNode);
+	int chancechange(int chesschance) const;
+	node *treepolicy(node *rootnode);
 	node *expand(node *expandnode);
-	node *bestchild(node *father);
-	double defaultpolicy(node *selectedNode);
-	void backup(node *selectedNode, double deltaProfit);
+	node *bestchild(node *rootnode);
+	double defaultpolicy(node *tempnode);
+	void backup(node *leaf, double deltaprofit);
 
 public:
 	UCT(int M, int N, int noX, int noY);

@@ -48,7 +48,7 @@ void UCT::placechess(int **board, int *top, int chesschance, int &x, int &y)
 		top[y] --;
 }
 
-int UCT::rightchange(int chesschance) const
+int UCT::chancechange(int chesschance) const
 {
 	if (chesschance == USERCHANCE)
 		return MACHINECHANCE;
@@ -63,7 +63,7 @@ node *UCT::treepolicy(node *rootnode)
 {
 	while (!rootnode->isleaf())
 	{
-		if (rootnode->isExpandable())
+		if (rootnode->isexpandable())
 			return expand(rootnode);
 		else
 			rootnode = bestchild(rootnode);
@@ -99,7 +99,7 @@ node *UCT::expand(node *expandnode)
 	//delete[] temptoparray;
 	//swap(expandnode->expandablenode[index], expandnode->expandablenode[--expandablenum]); 
 	//return expandnode->children[newy];
-	return expandnode->expand(rightchange(expandnode->whochess()));
+	return expandnode->expand(chancechange(expandnode->whochess()));
 }
 node *UCT::bestchild(node *rootnode)
 {
@@ -127,13 +127,13 @@ double UCT::defaultpolicy(node *tempnode)
 	int **board = tempnode->getboard(), *top = tempnode->gettop();
 	int chesschance = tempnode->whochess(), depth = tempnode->depth;
 	int x = tempnode->x(), y = tempnode->y();
-	int tempprofit = profit(board, top, rightchange(chesschance), x, y); //计算收益 
+	int tempprofit = profit(board, top, chancechange(chesschance), x, y); //计算收益 
 	while (tempprofit == NOTEND)
 	{
 		depth++;
 		placechess(board, top, chesschance, x, y);
 		tempprofit = profit(board, top, chesschance, x, y);
-		chesschance = rightchange(chesschance);
+		chesschance = chancechange(chesschance);
 	}
 	for (int i = 0; i < row; i++)
 		delete[] board[i];

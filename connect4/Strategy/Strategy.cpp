@@ -89,13 +89,13 @@ extern "C" __declspec(dllexport) Point* getPoint(const int M, const int N, const
 	if (flag == 0)
 	{
 		UCT *ucttree = new UCT(M, N, noX, noY);
-		int *topstate = new int[N];
+		int *toparray = new int[N];
 		for (int i = 0; i < N; i++)
-			topstate[i] = top[i];
-		Point *point = ucttree->search(board, topstate);
+			toparray[i] = top[i];
+		Point *point = ucttree->search(board, toparray);
 		x = point->x, y = point->y;
 		delete point;
-		delete[] topstate;
+		delete[] toparray;
 		delete ucttree;
 	}
 	//endtime = clock();
