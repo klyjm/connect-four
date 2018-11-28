@@ -1,6 +1,4 @@
 #include <iostream>
-#include <random>
-#include <Windows.h>
 #include "Point.h"
 #include "Strategy.h"
 #include "UCT.h"
