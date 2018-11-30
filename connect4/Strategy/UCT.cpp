@@ -19,7 +19,7 @@ Point *UCT::search(int **board, int *top)
 		backup(tempnode, deltaprofit);
 	}
 	node *bestpoint = bestchild(root);
-	Point *point = new Point(bestpoint->x(), bestpoint->y());
+	Point *point = new Point(bestpoint->pointx, bestpoint->pointy);
 	root->clear();
 	delete root;
 	root = NULL;
@@ -63,7 +63,7 @@ node *UCT::treepolicy(node *rootnode)
 {
 	while (!rootnode->isleaf())
 	{
-		if (rootnode->isexpandable())
+		if (rootnode->expandablenum > 0)
 			return expand(rootnode);
 		else
 			rootnode = bestchild(rootnode);
@@ -85,21 +85,21 @@ node *UCT::expand(node *expandnode)
 	//int *temptoparray = new int[column];
 	//for (int i = 0; i < column; i++)
 	//	temptoparray[i] = expandnode->toparray[i];
-	////*int **tempboardarray = expandnode->getboard();
+	///*int **tempboardarray = expandnode->getboard();
 	//int *temptoparray = expandnode->gettop();*/
 	//int newy = expandnode->expandablenode[index], newx = --temptoparray[newy];
 	//tempboardarray[newx][newy] = expandnode->chesschance; 
 	//if (newx - 1 == nox && newy == noy)
 	//	temptoparray[newy] --; 
 	////为当前节点创建扩展子节点 
-	//expandnode->children[newy] = new node(tempboardarray, temptoparray, row, column, nox, noy, expandnode->depth + 1, newx, newy, rightchange(expandnode->chesschance), expandnode);
+	//expandnode->children[newy] = new node(tempboardarray, temptoparray, row, column, nox, noy, expandnode->depth + 1, chancechange(expandnode->chesschance), newx, newy, expandnode);
 	//for (int i = 0; i < row; i++)
 	//	delete[] tempboardarray[i];
 	//delete[] tempboardarray;
 	//delete[] temptoparray;
 	//swap(expandnode->expandablenode[index], expandnode->expandablenode[--expandablenum]); 
 	//return expandnode->children[newy];
-	return expandnode->expand(chancechange(expandnode->whochess()));
+	return expandnode->expand(chancechange(expandnode->chesschance));
 }
 node *UCT::bestchild(node *rootnode)
 {
@@ -125,8 +125,8 @@ node *UCT::bestchild(node *rootnode)
 double UCT::defaultpolicy(node *tempnode)
 {
 	int **board = tempnode->getboard(), *top = tempnode->gettop();
-	int chesschance = tempnode->whochess(), depth = tempnode->depth;
-	int x = tempnode->x(), y = tempnode->y();
+	int chesschance = tempnode->chesschance, depth = tempnode->depth;
+	int x = tempnode->pointx, y = tempnode->pointy;
 	int tempprofit = profit(board, top, chancechange(chesschance), x, y); //计算收益 
 	while (tempprofit == NOTEND)
 	{

@@ -62,8 +62,8 @@ extern "C" __declspec(dllexport) Point* getPoint(const int M, const int N, const
 	{
 		if (top[i] != 0)
 		{
-			board[top[i] - 1][i] = 1;
-			if (userWin(top[i] - 1, i, M, N, board))
+			board[top[i] - 1][i] = 2;
+			if (machineWin(top[i] - 1, i, M, N, board))
 			{
 				x = top[i] - 1;
 				y = i;
@@ -72,12 +72,12 @@ extern "C" __declspec(dllexport) Point* getPoint(const int M, const int N, const
 			}
 			else
 			{
-				board[top[i] - 1][i] = 2;
-				if (machineWin(top[i] - 1, i, M, N, board))
+				board[top[i] - 1][i] = 1;
+				if (userWin(top[i] - 1, i, M, N, board))
 				{
 					x = top[i] - 1;
 					y = i;
-					flag = 2;
+					flag = 1;
 					break;
 				}
 			}
