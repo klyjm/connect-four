@@ -26,50 +26,11 @@ class UCT;
 class node
 {
 private:
-//	int **boardarray, *toparray, row, column, nox, noy, depth, chesschance, lastx, lasty, visitednum, expandablenum, *expandablenode;
-//	double profit;
-//	node *father, **children;
-//	friend class UCT;
-//
-//	int *gettop() const
-//	{
-//		int *temp = new int[column];
-//		for (int i = 0; i < column; i++)
-//			temp[i] = toparray[i];
-//		return temp;
-//	}
-//	int **getboard() const
-//	{
-//		int **temp = new int*[row];
-//		for (int i = 0; i < row; i++) 
-//		{
-//			temp[i] = new int[column];
-//			for (int j = 0; j < column; j++)
-//				temp[i][j] = boardarray[i][j];
-//		}
-//		return temp;
-//	}
-//	void clear()
-//	{
-//		for (int i = 0; i < row; i++)
-//			delete[] boardarray[i];
-//		delete[] boardarray;
-//		delete[] toparray;
-//		delete[] expandablenode;
-//		for (int i = 0; i < column; i++)
-//			if (children[i])
-//			{
-//				children[i]->clear();
-//				delete[] children[i];
-//			}
-//		delete[] children;
-//	}
 
 public:
 	int **boardarray, *toparray, row, column, nox, noy, depth, chesschance, pointx, pointy, visitednum, expandablenum, *expandablenode;
 	double profit;
 	node *father, **children;
-
 	node(int **board, int *top, int M, int N, int noX, int noY, int nodedepth = 0, int chessright = MACHINECHANCE, int x = -1, int y = -1, node* fathernode = NULL)
 	{
 		boardarray = new int*[M];
@@ -177,15 +138,15 @@ private:
 	node *root;
 	int row, column;
 	int nox, noy;
-	int startTime;
+	int starttime;
+	node *treepolicy(node *rootnode);
+	double defaultpolicy(node *tempnode);
+	void backup(node *leaf, double deltaprofit);
+	node *expand(node *expandnode);
+	node *bestchild(node *rootnode);
 	int profit(int **board, int *top, int chesschance, int x, int y) const;
 	void placechess(int **board, int *top, int chesschance, int &x, int &y);
 	int chancechange(int chesschance) const;
-	node *treepolicy(node *rootnode);
-	node *expand(node *expandnode);
-	node *bestchild(node *rootnode);
-	double defaultpolicy(node *tempnode);
-	void backup(node *leaf, double deltaprofit);
 
 public:
 	UCT(int M, int N, int noX, int noY);
