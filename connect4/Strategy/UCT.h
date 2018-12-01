@@ -142,7 +142,7 @@ private:
 	node *treepolicy(node *rootnode);
 	double defaultpolicy(node *tempnode);
 	void backup(node *leaf, double deltaprofit);
-	node *expand(node *expandnode);
+	//node *expand(node *expandnode);
 	node *bestchild(node *rootnode);
 	int profit(int **board, int *top, int chesschance, int x, int y) const;
 	void placechess(int **board, int *top, int chesschance, int &x, int &y);

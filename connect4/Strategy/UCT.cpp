@@ -36,7 +36,8 @@ node *UCT::treepolicy(node *rootnode)
 	while (!rootnode->isleaf())
 	{
 		if (rootnode->expandablenum > 0)
-			return expand(rootnode);
+			//return expand(rootnode);
+			return rootnode->expand(chancechange(rootnode->chesschance));
 		else
 			rootnode = bestchild(rootnode);
 	}
@@ -48,7 +49,7 @@ double UCT::defaultpolicy(node *tempnode)
 	int **board = tempnode->getboard(), *top = tempnode->gettop();
 	int chesschance = tempnode->chesschance, depth = tempnode->depth;
 	int x = tempnode->pointx, y = tempnode->pointy;
-	int tempprofit = profit(board, top, chancechange(chesschance), x, y); //计算收益 
+	int tempprofit = profit(board, top, chancechange(chesschance), x, y);
 	while (tempprofit == NOTEND)
 	{
 		depth++;
@@ -74,10 +75,10 @@ void UCT::backup(node *leaf, double deltaprofit)
 	}
 }
 
-node *UCT::expand(node *expandnode)
-{
+//node *UCT::expand(node *expandnode)
+//{
 	//int expandablenum = expandnode->expandablenum;
-	//int index = rand() % expandablenum; //随机确定一个索引值 
+	//int index = rand() % expandablenum; 
 	//int **tempboardarray = new int*[row];
 	//for (int i = 0; i < row; i++)
 	//{
@@ -94,7 +95,6 @@ node *UCT::expand(node *expandnode)
 	//tempboardarray[newx][newy] = expandnode->chesschance; 
 	//if (newx - 1 == nox && newy == noy)
 	//	temptoparray[newy] --; 
-	////为当前节点创建扩展子节点 
 	//expandnode->children[newy] = new node(tempboardarray, temptoparray, row, column, nox, noy, expandnode->depth + 1, chancechange(expandnode->chesschance), newx, newy, expandnode);
 	//for (int i = 0; i < row; i++)
 	//	delete[] tempboardarray[i];
@@ -102,8 +102,7 @@ node *UCT::expand(node *expandnode)
 	//delete[] temptoparray;
 	//swap(expandnode->expandablenode[index], expandnode->expandablenode[--expandablenum]); 
 	//return expandnode->children[newy];
-	return expandnode->expand(chancechange(expandnode->chesschance));
-}
+//}
 
 node *UCT::bestchild(node *rootnode)
 {
@@ -116,7 +115,6 @@ node *UCT::bestchild(node *rootnode)
 		double newprofit = (rootnode->chesschance == USERCHANCE ? -1 : 1) * rootnode->children[i]->profit;
 		int childvisitednum = rootnode->children[i]->visitednum;
 		double tempprofit = newprofit / childvisitednum + C * sqrtl(2 * logl(rootnode->visitednum) / childvisitednum); //计算综合收益率 
-		//if (tempProfitRatio > maxProfitRatio || (tempProfitRatio == maxProfitRatio && rand() % 2 == 0)) 
 		if (tempprofit > maxprofit)
 		{
 			maxprofit = tempprofit;
