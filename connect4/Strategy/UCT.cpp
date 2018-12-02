@@ -17,10 +17,12 @@ UCT::~UCT()
 Point *UCT::search(int **board, int *top)
 {
 	root = new node(board, top, row, column, nox, noy);
+	node *tempnode;
+	double deltaprofit;
 	while (clock() - starttime <= TIMELIMITE)
 	{
-		node *tempnode = treepolicy(root);
-		double deltaprofit = defaultpolicy(tempnode);
+		tempnode = treepolicy(root);
+		deltaprofit = defaultpolicy(tempnode);
 		backup(tempnode, deltaprofit);
 	}
 	node *bestpoint = bestchild(root);
@@ -47,12 +49,11 @@ node *UCT::treepolicy(node *rootnode)
 double UCT::defaultpolicy(node *tempnode)
 {
 	int **board = tempnode->getboard(), *top = tempnode->gettop();
-	int chesschance = tempnode->chesschance, depth = tempnode->depth;
+	int chesschance = tempnode->chesschance;
 	int x = tempnode->pointx, y = tempnode->pointy;
 	int tempprofit = profit(board, top, chancechange(chesschance), x, y);
 	while (tempprofit == NOTEND)
 	{
-		depth++;
 		placechess(board, top, chesschance, x, y);
 		tempprofit = profit(board, top, chesschance, x, y);
 		chesschance = chancechange(chesschance);
@@ -89,13 +90,13 @@ void UCT::backup(node *leaf, double deltaprofit)
 	//int *temptoparray = new int[column];
 	//for (int i = 0; i < column; i++)
 	//	temptoparray[i] = expandnode->toparray[i];
-	///*int **tempboardarray = expandnode->getboard();
+	////*int **tempboardarray = expandnode->getboard();
 	//int *temptoparray = expandnode->gettop();*/
 	//int newy = expandnode->expandablenode[index], newx = --temptoparray[newy];
 	//tempboardarray[newx][newy] = expandnode->chesschance; 
 	//if (newx - 1 == nox && newy == noy)
 	//	temptoparray[newy] --; 
-	//expandnode->children[newy] = new node(tempboardarray, temptoparray, row, column, nox, noy, expandnode->depth + 1, chancechange(expandnode->chesschance), newx, newy, expandnode);
+	//expandnode->children[newy] = new node(tempboardarray, temptoparray, row, column, nox, noy, chancechange(expandnode->chesschance), newx, newy, expandnode);
 	//for (int i = 0; i < row; i++)
 	//	delete[] tempboardarray[i];
 	//delete[] tempboardarray;
@@ -107,14 +108,15 @@ void UCT::backup(node *leaf, double deltaprofit)
 node *UCT::bestchild(node *rootnode)
 {
 	node* bestpoint;
-	double maxprofit = -(numeric_limits<double>::max)();
+	double maxprofit = -(numeric_limits<double>::max)(), newprofit, tempprofit;
+	int childvisitednum;
 	for (int i = 0; i < column; i++)
 	{
 		if (rootnode->children[i] == NULL)
 			continue;
-		double newprofit = (rootnode->chesschance == USERCHANCE ? -1 : 1) * rootnode->children[i]->profit;
-		int childvisitednum = rootnode->children[i]->visitednum;
-		double tempprofit = newprofit / childvisitednum + C * sqrtl(2 * logl(rootnode->visitednum) / childvisitednum); //计算综合收益率 
+		newprofit = (rootnode->chesschance == USERCHANCE ? -1 : 1) * rootnode->children[i]->profit;
+		childvisitednum = rootnode->children[i]->visitednum;
+		tempprofit = newprofit / childvisitednum + C * sqrtl(2 * logl(rootnode->visitednum) / childvisitednum);
 		if (tempprofit > maxprofit)
 		{
 			maxprofit = tempprofit;

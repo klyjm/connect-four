@@ -15,7 +15,7 @@
 #define MACHINEWIN 1
 #define TIE 0
 #define NOTEND 2
-#define C 0.67 //比例系数c，选取待定 
+#define C 0.6 //比例系数c，通过实验选取
 
 using namespace std;
 static default_random_engine eg(GetTickCount64());
@@ -28,10 +28,10 @@ class node
 private:
 
 public:
-	int **boardarray, *toparray, row, column, nox, noy, depth, chesschance, pointx, pointy, visitednum, expandablenum, *expandablenode;
+	int **boardarray, *toparray, row, column, nox, noy, chesschance, pointx, pointy, visitednum, expandablenum, *expandablenode;
 	double profit;
 	node *father, **children;
-	node(int **board, int *top, int M, int N, int noX, int noY, int nodedepth = 0, int chessright = MACHINECHANCE, int x = -1, int y = -1, node* fathernode = NULL)
+	node(int **board, int *top, int M, int N, int noX, int noY, int chessright = MACHINECHANCE, int x = -1, int y = -1, node* fathernode = NULL)
 	{
 		boardarray = new int*[M];
 		for (int i = 0; i < M; i++)
@@ -47,7 +47,6 @@ public:
 		column = N;
 		nox = noX;
 		noy = noY;
-		depth = nodedepth;
 		chesschance = chessright;
 		pointx = x;
 		pointy = y;
@@ -90,6 +89,21 @@ public:
 			return true;
 		return false;
 	}
+	void clear()
+	{
+		for (int i = 0; i < row; i++)
+			delete[] boardarray[i];
+		delete[] boardarray;
+		delete[] toparray;
+		delete[] expandablenode;
+		for (int i = 0; i < column; i++)
+			if (children[i])
+			{
+				children[i]->clear();
+				delete[] children[i];
+			}
+		delete[] children;
+	}
 	node *expand(int chessright)
 	{
 		int index = eg() % expandablenum;
@@ -107,28 +121,13 @@ public:
 		tempboardarray[newx][newy] = chesschance;
 		if (newx - 1 == nox && newy == noy)
 			temptoparray[newy] --;
-		children[newy] = new node(tempboardarray, temptoparray, row, column, nox, noy, depth + 1, chessright, newx, newy, this);
+		children[newy] = new node(tempboardarray, temptoparray, row, column, nox, noy, chessright, newx, newy, this);
 		for (int i = 0; i < row; i++)
 			delete[] tempboardarray[i];
 		delete[] tempboardarray;
 		delete[] temptoparray;
 		swap(expandablenode[index], expandablenode[--expandablenum]);
 		return children[newy];
-	}
-	void clear()
-	{
-		for (int i = 0; i < row; i++)
-			delete[] boardarray[i];
-		delete[] boardarray;
-		delete[] toparray;
-		delete[] expandablenode;
-		for (int i = 0; i < column; i++)
-			if (children[i])
-			{
-				children[i]->clear();
-				delete[] children[i];
-			}
-		delete[] children;
 	}
 };
 
